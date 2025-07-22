@@ -51,7 +51,7 @@ export const GuardianCheckIn = ({ isOpen, onClose, onSafeCheckIn }: GuardianChec
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-gray-900 text-white border-gray-700">
+      <DialogContent className="bg-gray-900 text-white border-gray-700 z-[9999]">
         <DialogHeader>
           <DialogTitle>Safety Check In</DialogTitle>
         </DialogHeader>

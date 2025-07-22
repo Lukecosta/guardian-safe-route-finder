@@ -215,6 +215,15 @@
   100% { transform: scale(1); }
 }
 
+/* Ensure modals appear above map */
+[data-radix-popper-content-wrapper] {
+  z-index: 10000 !important;
+}
+
+.guardian-modal-overlay {
+  z-index: 9998 !important;
+}
+
 @layer base {
   * {
     @apply border-border;

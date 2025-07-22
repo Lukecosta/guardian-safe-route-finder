@@ -6,6 +6,7 @@ import { GuardianMap } from '@/components/Guardian/GuardianMap';
 import { GuardianFeatures } from '@/components/Guardian/GuardianFeatures';
 import { GuardianStats } from '@/components/Guardian/GuardianStats';
 import { GuardianCheckIn } from '@/components/Guardian/GuardianCheckIn';
+import { GuardianRouteModal } from '@/components/Guardian/GuardianRouteModal';
 import { CrimeDataService } from '@/services/crimeDataService';
 import { SocialMediaService } from '@/services/socialMediaService';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +34,8 @@ const Guardian = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([51.505, -0.09]);
   const [areaStats, setAreaStats] = useState<AreaStats | null>(null);
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
+  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
+  const [routeRecommendations, setRouteRecommendations] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -104,26 +107,9 @@ const Guardian = () => {
       return;
     }
 
-    const routeRecommendations = CrimeDataService.generateSafeRouteRecommendations(crimes);
-    
-    // Create a comprehensive alert with AI recommendations
-    const message = `
-🛡️ AI ROUTE ANALYSIS FOR THIS AREA:
-
-🚫 AREAS TO AVOID:
-${routeRecommendations.avoidAreas.length > 0 ? routeRecommendations.avoidAreas.join('\n') : 'No specific high-risk areas identified'}
-
-⏰ SAFER TRAVEL TIMES:
-${routeRecommendations.safeTimes.join(', ')}
-
-📋 SAFETY RECOMMENDATIONS:
-${routeRecommendations.recommendations.map((rec, index) => `${index + 1}. ${rec}`).join('\n')}
-
-📊 CRIME ANALYSIS:
-Based on ${crimes.length} recent incidents in this area.
-    `.trim();
-
-    alert(message);
+    const recommendations = CrimeDataService.generateSafeRouteRecommendations(crimes);
+    setRouteRecommendations(recommendations);
+    setIsRouteModalOpen(true);
     
     toast({
       title: "AI Route Analysis Complete",
@@ -178,6 +164,14 @@ Based on ${crimes.length} recent incidents in this area.
         isOpen={isCheckInOpen}
         onClose={() => setIsCheckInOpen(false)}
         onSafeCheckIn={handleSafeCheckIn}
+      />
+
+      {/* Route Analysis Modal */}
+      <GuardianRouteModal
+        isOpen={isRouteModalOpen}
+        onClose={() => setIsRouteModalOpen(false)}
+        recommendations={routeRecommendations}
+        crimeCount={crimes.length}
       />
     </div>
   );
