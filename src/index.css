@@ -1,97 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+@import url('https://unpkg.com/leaflet/dist/leaflet.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
+/* Guardian App Design System */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Guardian Color Palette */
+    --background: 210 11% 10%;
+    --foreground: 0 0% 100%;
+    
+    --card: 0 0% 100% / 0.1;
+    --card-foreground: 0 0% 100%;
+    
+    --primary: 15 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 330 81% 60%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 0 0% 100% / 0.1;
+    --muted-foreground: 243 4% 93%;
+    
+    --accent: 15 100% 55%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 100% / 0.2;
+    --input: 0 0% 100% / 0.1;
+    --ring: 330 81% 60%;
+    
+    --radius: 0.9375rem;
+    
+    /* Guardian Gradients */
+    --gradient-primary: linear-gradient(to right, hsl(15 100% 55%), hsl(330 81% 60%));
+    --gradient-card: rgba(255, 255, 255, 0.05);
+    
+    /* Guardian Shadows */
+    --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.2);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+    
+    /* Guardian Animations */
+    --animation-pulse: pulse 2s infinite;
+    --animation-bounce: titleBurst 1s ease-out;
   }
+}
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+@layer base {
+  * {
+    @apply border-border;
   }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+    @apply bg-background text-foreground;
+    transition: background-color 0.3s, color 0.3s;
+  }
+}
+
+@layer components {
+  /* Guardian Navbar */
+  .guardian-navbar {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    @apply fixed top-0 left-0 right-0 z-50 p-4;
+  }
+  
+  .guardian-brand {
+    font-weight: 600;
+    background-image: var(--gradient-primary);
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: var(--animation-bounce);
+  }
+  
+  /* Guardian Social Icons */
+  .guardian-social-icons {
+    @apply fixed left-5 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-[1000];
+  }
+  
+  .guardian-social-icon {
+    @apply w-10 h-10 rounded-full flex items-center justify-center text-white no-underline transition-transform duration-300 hover:scale-110;
+  }
+  
+  .social-facebook { @apply bg-[#1877f2]; }
+  .social-twitter { @apply bg-black; }
+  .social-tiktok { background: linear-gradient(45deg, #00f2ea, #ff0050); }
+  
+  /* Guardian Map */
+  .guardian-map {
+    @apply h-[60vh] w-full rounded-2xl shadow-xl my-5;
+    box-shadow: var(--shadow-card);
+  }
+  
+  /* Guardian Search */
+  .guardian-search-container {
+    background: var(--gradient-card);
+    @apply p-5 rounded-2xl my-5;
+  }
+  
+  .guardian-input {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    @apply text-foreground;
+  }
+  
+  .guardian-input:focus {
+    background: var(--gradient-card);
+    @apply text-foreground;
+    border-color: hsl(var(--ring));
+  }
+  
+  .guardian-btn-search {
+    background: var(--gradient-primary);
+    @apply border-none text-white px-6 py-2 rounded-full;
+  }
+  
+  /* Guardian Feature Cards */
+  .guardian-feature-card {
+    background: var(--gradient-card);
+    backdrop-filter: blur(10px);
+    @apply rounded-2xl p-5 my-2 transition-transform duration-300 hover:-translate-y-1;
+  }
+  
+  .guardian-feature-card h4 {
+    @apply text-white mb-5 font-semibold;
+  }
+  
+  .guardian-feature-card h5 {
+    color: hsl(var(--primary));
+    @apply text-xl mb-4;
+  }
+  
+  .guardian-feature-card h6 {
+    color: hsl(var(--secondary));
+    @apply text-base mb-2 font-semibold;
+  }
+  
+  .guardian-feature-card ul {
+    @apply list-none pl-0 mb-5;
+  }
+  
+  .guardian-feature-card li {
+    @apply text-gray-100 mb-2 text-sm py-1 px-2 rounded transition-colors duration-300;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .guardian-feature-card li:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Guardian Emergency Button */
+  .guardian-emergency-btn {
+    @apply fixed bottom-5 right-5 bg-red-600 text-white px-8 py-4 rounded-full no-underline font-bold;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+    animation: var(--animation-pulse);
+  }
+  
+  /* Guardian Crime Popup */
+  .guardian-crime-popup {
+    @apply bg-white/95 rounded-lg p-4 max-w-xs;
+  }
+  
+  .guardian-crime-popup h3 {
+    @apply text-gray-900 text-xl mb-2;
+  }
+  
+  .guardian-crime-popup p {
+    @apply text-gray-700 my-1;
+  }
+  
+  .guardian-status-badge {
+    @apply py-1 px-2 rounded-full text-xs mt-2 inline-block;
+  }
+  
+  .status-safe { @apply bg-green-500 text-white; }
+  .status-caution { @apply bg-yellow-500 text-black; }
+  .status-danger { @apply bg-red-500 text-white; }
+  
+  /* Guardian News Section */
+  .guardian-news-section {
+    background: var(--gradient-card);
+    @apply rounded-2xl p-4 mt-4;
+  }
+  
+  .guardian-news-section h5 {
+    color: hsl(var(--secondary));
+    @apply mb-2;
+  }
+  
+  .guardian-news-section a {
+    @apply text-foreground no-underline transition-colors duration-300;
+  }
+  
+  .guardian-news-section a:hover {
+    color: hsl(var(--primary));
+  }
+}
+
+@keyframes titleBurst {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 @layer base {
