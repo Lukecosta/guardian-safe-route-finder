@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { GuardianNavbar } from '@/components/Guardian/GuardianNavbar';
-import { GuardianSocialIcons } from '@/components/Guardian/GuardianSocialIcons';
+
 import { GuardianSearch } from '@/components/Guardian/GuardianSearch';
 import { GuardianMap } from '@/components/Guardian/GuardianMap';
 import { GuardianFeatures } from '@/components/Guardian/GuardianFeatures';
@@ -72,9 +72,6 @@ const Guardian = () => {
     }
   };
 
-  const handleSocialShare = (platform: 'facebook' | 'twitter' | 'tiktok', message: string) => {
-    SocialMediaService.shareGeneralMessage(platform, message);
-  };
 
   const handleSafeCheckIn = async (coordinates: GeolocationCoordinates, platform: string) => {
     try {
@@ -128,8 +125,6 @@ const Guardian = () => {
   return (
     <div className="min-h-screen bg-background">
       <GuardianNavbar onCheckIn={() => setIsCheckInOpen(true)} />
-      
-      <GuardianSocialIcons onShare={handleSocialShare} />
       
       <div className="container mx-auto px-4 pt-24">
         <GuardianSearch onSearch={handleSearch} />

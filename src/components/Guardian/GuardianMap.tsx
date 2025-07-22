@@ -2,13 +2,45 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default markers in React
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Custom crime marker icons
+const getCrimeIcon = (category: string) => {
+  const iconMap: { [key: string]: string } = {
+    'vehicle-crime': '🚗',
+    'violent-crime': '👊',
+    'shoplifting': '🏪',
+    'burglary': '🏠',
+    'robbery': '💰',
+    'theft-from-the-person': '👤',
+    'anti-social-behaviour': '⚠️',
+    'criminal-damage-arson': '🔥',
+    'drugs': '💊',
+    'other-theft': '🎒',
+    'possession-of-weapons': '🔪',
+    'public-order': '👮',
+    'bicycle-theft': '🚲'
+  };
+
+  const emoji = iconMap[category] || '📍';
+  
+  return L.divIcon({
+    html: `<div style="
+      background: linear-gradient(135deg, #ff4800, #ee0979);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 2px solid white;
+    ">${emoji}</div>`,
+    className: 'guardian-crime-marker',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15]
+  });
+};
 
 interface Crime {
   category: string;
@@ -65,7 +97,8 @@ export const GuardianMap = ({ crimes, center, onRouteRequest }: GuardianMapProps
     const newMarkers: L.Marker[] = [];
     
     crimes.forEach(crime => {
-      const marker = L.marker([crime.location.latitude, crime.location.longitude]);
+      const crimeIcon = getCrimeIcon(crime.category);
+      const marker = L.marker([crime.location.latitude, crime.location.longitude], { icon: crimeIcon });
       
       const riskLevel = calculateRiskLevel(crime, crimes);
       const safetyTips = generateSafetyTips(crime.category);
