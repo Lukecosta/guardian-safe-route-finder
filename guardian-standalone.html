@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardian - Community Safety App</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/lucide-react@0.462.0/dist/cjs/lucide-react.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 346 77% 49.8%;
+            --primary-foreground: 355.7 100% 97.3%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 346 77% 49.8%;
+            --gradient-primary: linear-gradient(135deg, hsl(346, 77%, 49.8%), hsl(278, 99%, 52%));
+            --gradient-subtle: linear-gradient(180deg, hsl(222.2, 84%, 4.9%), hsl(217.2, 32.6%, 17.5%));
+            --shadow-elegant: 0 10px 30px -10px hsl(346 77% 49.8% / 0.3);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Guardian Navbar */
+        .guardian-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, hsl(346, 77%, 49.8%), hsl(278, 99%, 52%));
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 1rem 0;
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .guardian-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .guardian-nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .guardian-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .guardian-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Search */
+        .guardian-search-container {
+            margin: 6rem 0 2rem 0;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+        }
+
+        .guardian-input {
+            background: hsl(var(--input));
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: hsl(var(--foreground));
+            width: 100%;
+        }
+
+        .guardian-btn-search {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .guardian-btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-elegant);
+        }
+
+        /* Map */
+        .guardian-map-container {
+            margin: 2rem 0;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid hsl(var(--border));
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        /* Features */
+        .guardian-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .guardian-feature-card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-elegant);
+        }
+
+        .guardian-feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: hsl(var(--primary));
+        }
+
+        .guardian-feature-card p {
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 1.5rem;
+        }
+
+        /* Stats */
+        .guardian-stats h4 {
+            font-size: 1.125rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: hsl(var(--primary));
+        }
+
+        .guardian-stats h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .guardian-stats h6 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 1rem 0 0.5rem 0;
+            color: hsl(var(--accent-foreground));
+        }
+
+        .guardian-stats ul {
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+
+        .guardian-stats li {
+            padding: 0.25rem 0;
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: hsl(var(--card));
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid hsl(var(--border));
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: hsl(var(--primary));
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: hsl(var(--muted-foreground));
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .close-btn:hover {
+            color: hsl(var(--foreground));
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .guardian-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .guardian-crime-marker {
+            border: none !important;
+            background: transparent !important;
+        }
+
+        /* Leaflet popup customization */
+        .leaflet-popup-content-wrapper {
+            background: hsl(var(--card)) !important;
+            color: hsl(var(--foreground)) !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid hsl(var(--border)) !important;
+        }
+
+        .leaflet-popup-content {
+            color: hsl(var(--foreground)) !important;
+        }
+
+        .leaflet-popup-tip {
+            background: hsl(var(--card)) !important;
+            border: 1px solid hsl(var(--border)) !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Crime data service simulation
+        const CrimeDataService = {
+            async getCrimeData(location) {
+                // Simulate API call with mock data
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const mockCrimes = [
+                            {
+                                category: 'vehicle-crime',
+                                location: { latitude: 51.5074 + (Math.random() - 0.5) * 0.01, longitude: -0.1278 + (Math.random() - 0.5) * 0.01 },
+                                month: '2024-01',
+                                context: '',
+                                id: '1'
+                            },
+                            {
+                                category: 'violent-crime',
+                                location: { latitude: 51.5074 + (Math.random() - 0.5) * 0.01, longitude: -0.1278 + (Math.random() - 0.5) * 0.01 },
+                                month: '2024-01',
+                                context: '',
+                                id: '2'
+                            },
+                            {
+                                category: 'shoplifting',
+                                location: { latitude: 51.5074 + (Math.random() - 0.5) * 0.01, longitude: -0.1278 + (Math.random() - 0.5) * 0.01 },
+                                month: '2024-01',
+                                context: '',
+                                id: '3'
+                            },
+                            {
+                                category: 'burglary',
+                                location: { latitude: 51.5074 + (Math.random() - 0.5) * 0.01, longitude: -0.1278 + (Math.random() - 0.5) * 0.01 },
+                                month: '2024-01',
+                                context: '',
+                                id: '4'
+                            }
+                        ];
+                        resolve(mockCrimes);
+                    }, 1000);
+                });
+            },
+
+            async getAreaStats(crimes) {
+                const categories = {};
+                const outcomes = {};
+                const monthlyTrends = {};
+
+                crimes.forEach(crime => {
+                    categories[crime.category] = (categories[crime.category] || 0) + 1;
+                    outcomes['Under investigation'] = (outcomes['Under investigation'] || 0) + 1;
+                    monthlyTrends[crime.month] = (monthlyTrends[crime.month] || 0) + 1;
+                });
+
+                return {
+                    totalCrimes: crimes.length,
+                    categories: Object.entries(categories).sort((a, b) => b[1] - a[1]),
+                    outcomes: Object.entries(outcomes).sort((a, b) => b[1] - a[1]),
+                    monthlyTrends: Object.entries(monthlyTrends).sort((a, b) => b[1] - a[1])
+                };
+            }
+        };
+
+        // Custom crime marker icons
+        const getCrimeIcon = (category) => {
+            const iconMap = {
+                'vehicle-crime': '🚗',
+                'violent-crime': '👊',
+                'shoplifting': '🏪',
+                'burglary': '🏠',
+                'robbery': '💰',
+                'theft-from-the-person': '👤',
+                'anti-social-behaviour': '⚠️',
+                'criminal-damage-arson': '🔥',
+                'drugs': '💊',
+                'other-theft': '🎒',
+                'possession-of-weapons': '🔪',
+                'public-order': '👮',
+                'bicycle-theft': '🚲'
+            };
+
+            const emoji = iconMap[category] || '📍';
+            
+            return L.divIcon({
+                html: `<div style="
+                    background: linear-gradient(135deg, #ff4800, #ee0979);
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    border: 2px solid white;
+                ">${emoji}</div>`,
+                className: 'guardian-crime-marker',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+                popupAnchor: [0, -15]
+            });
+        };
+
+        // Guardian Map Component
+        const GuardianMap = ({ crimes, selectedLocation }) => {
+            const mapRef = useRef(null);
+            const mapInstanceRef = useRef(null);
+            const markersRef = useRef([]);
+
+            useEffect(() => {
+                if (!mapInstanceRef.current && mapRef.current) {
+                    mapInstanceRef.current = L.map(mapRef.current).setView([51.5074, -0.1278], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(mapInstanceRef.current);
+                }
+
+                return () => {
+                    if (mapInstanceRef.current) {
+                        mapInstanceRef.current.remove();
+                        mapInstanceRef.current = null;
+                    }
+                };
+            }, []);
+
+            useEffect(() => {
+                if (!mapInstanceRef.current) return;
+
+                // Clear existing markers
+                markersRef.current.forEach(marker => {
+                    mapInstanceRef.current.removeLayer(marker);
+                });
+                markersRef.current = [];
+
+                // Add crime markers
+                crimes.forEach(crime => {
+                    const crimeIcon = getCrimeIcon(crime.category);
+                    const marker = L.marker([crime.location.latitude, crime.location.longitude], { icon: crimeIcon });
+                    
+                    const popupContent = `
+                        <div style="color: hsl(210 40% 98%); min-width: 200px;">
+                            <h4 style="color: hsl(346 77% 49.8%); margin-bottom: 0.5rem; font-weight: bold;">
+                                ${crime.category.replace(/-/g, ' ').toUpperCase()}
+                            </h4>
+                            <p style="margin-bottom: 0.5rem;">📅 Month: ${crime.month}</p>
+                            <div style="background: rgba(346, 77%, 49.8%, 0.1); padding: 0.5rem; border-radius: 0.25rem; margin-top: 0.5rem;">
+                                <p style="font-size: 0.875rem; color: hsl(215 20.2% 65.1%);">
+                                    🛡️ Stay alert in this area and follow safety guidelines
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                    marker.addTo(mapInstanceRef.current);
+                    markersRef.current.push(marker);
+                });
+
+                // Center map on selected location
+                if (selectedLocation && crimes.length > 0) {
+                    const bounds = L.latLngBounds(crimes.map(crime => [crime.location.latitude, crime.location.longitude]));
+                    mapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
+                }
+            }, [crimes, selectedLocation]);
+
+            return <div ref={mapRef} id="map" />;
+        };
+
+        // Guardian Stats Component
+        const GuardianStats = ({ stats }) => {
+            if (!stats) return null;
+
+            const topCategories = stats.categories.slice(0, 5);
+            const recentMonths = stats.monthlyTrends.slice(0, 3);
+            const topOutcomes = stats.outcomes.slice(0, 5);
+
+            return (
+                <div className="guardian-feature-card guardian-stats">
+                    <h4>📊 Area Crime Statistics</h4>
+                    <div>
+                        <h5>Total Reported Crimes: {stats.totalCrimes}</h5>
+                        
+                        <h6>🔍 Top Crime Categories</h6>
+                        <ul>
+                            {topCategories.map(([category, count]) => (
+                                <li key={category}>
+                                    {category.replace(/-/g, ' ').toUpperCase()}: {count} cases
+                                </li>
+                            ))}
+                        </ul>
+
+                        <h6>📈 Monthly Trends</h6>
+                        <ul>
+                            {recentMonths.map(([month, count]) => (
+                                <li key={month}>
+                                    {month}: {count} incidents
+                                </li>
+                            ))}
+                        </ul>
+
+                        <h6>⚖️ Case Outcomes</h6>
+                        <ul>
+                            {topOutcomes.map(([outcome, count]) => (
+                                <li key={outcome}>
+                                    {outcome}: {count} cases
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            );
+        };
+
+        // Check-in Modal
+        const CheckInModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+
+            const handleSafeCheckIn = (platform) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            alert(`Safe check-in shared on ${platform}! Location: ${position.coords.latitude}, ${position.coords.longitude}`);
+                            onClose();
+                        },
+                        () => {
+                            alert('Unable to get location. Please enable location services.');
+                        }
+                    );
+                } else {
+                    alert('Geolocation is not supported by this browser.');
+                }
+            };
+
+            return (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3 className="modal-title">🛡️ Safety Check-In</h3>
+                            <button className="close-btn" onClick={onClose}>&times;</button>
+                        </div>
+                        <p style={{ marginBottom: '1.5rem', color: 'hsl(215 20.2% 65.1%)' }}>
+                            Share your safety status with friends and family
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <button 
+                                className="guardian-btn-search" 
+                                onClick={() => handleSafeCheckIn('Facebook')}
+                            >
+                                📘 Share on Facebook
+                            </button>
+                            <button 
+                                className="guardian-btn-search" 
+                                onClick={() => handleSafeCheckIn('X (Twitter)')}
+                            >
+                                🐦 Share on X
+                            </button>
+                            <button 
+                                className="guardian-btn-search" 
+                                onClick={() => handleSafeCheckIn('Both')}
+                            >
+                                📱 Share on Both
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Route Modal
+        const RouteModal = ({ isOpen, onClose, recommendations, crimeCount }) => {
+            if (!isOpen || !recommendations) return null;
+
+            const handlePrint = () => {
+                window.print();
+            };
+
+            return (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3 className="modal-title">🤖 AI Route Analysis</h3>
+                            <button className="close-btn" onClick={onClose}>&times;</button>
+                        </div>
+                        
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <p style={{ color: 'hsl(215 20.2% 65.1%)', marginBottom: '1rem' }}>
+                                Based on analysis of {crimeCount} recent crimes in this area:
+                            </p>
+                            
+                            <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
+                                <h4 style={{ color: '#ef4444', marginBottom: '0.5rem' }}>🚨 Areas to Avoid:</h4>
+                                <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem' }}>
+                                    {recommendations.avoidAreas.map((area, index) => (
+                                        <li key={index} style={{ color: 'hsl(215 20.2% 65.1%)' }}>{area}</li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div style={{ background: 'rgba(34, 197, 94, 0.1)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
+                                <h4 style={{ color: '#22c55e', marginBottom: '0.5rem' }}>⏰ Recommended Travel Times:</h4>
+                                <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem' }}>
+                                    {recommendations.safeTimes.map((time, index) => (
+                                        <li key={index} style={{ color: 'hsl(215 20.2% 65.1%)' }}>{time}</li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
+                                <h4 style={{ color: '#3b82f6', marginBottom: '0.5rem' }}>💡 Safety Recommendations:</h4>
+                                <ol style={{ listStyle: 'decimal', paddingLeft: '1.5rem' }}>
+                                    {recommendations.recommendations.map((rec, index) => (
+                                        <li key={index} style={{ color: 'hsl(215 20.2% 65.1%)', marginBottom: '0.25rem' }}>{rec}</li>
+                                    ))}
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button className="guardian-btn-search" onClick={onClose}>
+                                ✅ Got It
+                            </button>
+                            <button className="guardian-btn" onClick={handlePrint}>
+                                🖨️ Print Report
+                            </button>
+                        </div>
+
+                        <p style={{ fontSize: '0.75rem', color: 'hsl(215 20.2% 65.1%)', marginTop: '1rem', textAlign: 'center' }}>
+                            * This analysis is based on historical crime data and should be used as guidance only.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main Guardian App
+        const Guardian = () => {
+            const [crimes, setCrimes] = useState([]);
+            const [stats, setStats] = useState(null);
+            const [selectedLocation, setSelectedLocation] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [isCheckInOpen, setIsCheckInOpen] = useState(false);
+            const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
+            const [routeRecommendations, setRouteRecommendations] = useState(null);
+
+            const handleSearch = async (location) => {
+                setIsLoading(true);
+                setSelectedLocation(location);
+                
+                try {
+                    const crimeData = await CrimeDataService.getCrimeData(location);
+                    setCrimes(crimeData);
+                    
+                    const areaStats = await CrimeDataService.getAreaStats(crimeData);
+                    setStats(areaStats);
+                } catch (error) {
+                    console.error('Error fetching crime data:', error);
+                    alert('Error fetching crime data. Please try again.');
+                }
+                
+                setIsLoading(false);
+            };
+
+            const handleFindSafeRoute = () => {
+                const mockRecommendations = {
+                    avoidAreas: [
+                        "High Street between 10 PM - 2 AM (recent vehicle crimes)",
+                        "Park Lane area (increased theft reports)",
+                        "Station Road vicinity (anti-social behavior incidents)"
+                    ],
+                    safeTimes: [
+                        "Daylight hours (6 AM - 6 PM) - Lowest crime activity",
+                        "Early evening (6 PM - 8 PM) - Well-lit areas recommended",
+                        "Avoid late night travel (after 10 PM) in identified areas"
+                    ],
+                    recommendations: [
+                        "Use main roads with good lighting and CCTV coverage",
+                        "Travel with friends or inform someone of your route",
+                        "Keep valuables secure and stay aware of surroundings",
+                        "Consider alternative transport during high-risk hours",
+                        "Use Guardian app's real-time safety features"
+                    ]
+                };
+                
+                setRouteRecommendations(mockRecommendations);
+                setIsRouteModalOpen(true);
+            };
+
+            const handleReportCrime = (crimeData) => {
+                alert(`Crime reported: ${crimeData.type} - ${crimeData.description}`);
+            };
+
+            return (
+                <div style={{ minHeight: '100vh', background: 'hsl(var(--background))' }}>
+                    {/* Navbar */}
+                    <nav className="guardian-navbar">
+                        <div className="container">
+                            <div className="navbar-content">
+                                <div className="guardian-logo">
+                                    🤖 Guardian
+                                </div>
+                                <div className="guardian-nav-buttons">
+                                    <button 
+                                        className="guardian-btn"
+                                        onClick={() => setIsCheckInOpen(true)}
+                                    >
+                                        Check In
+                                    </button>
+                                    <button className="guardian-btn">
+                                        Track Friend
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div className="container">
+                        {/* Search */}
+                        <div className="guardian-search-container">
+                            <div className="search-grid">
+                                <input 
+                                    type="text"
+                                    placeholder="Enter UK postcode or town..."
+                                    className="guardian-input"
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleSearch(e.target.value);
+                                        }
+                                    }}
+                                />
+                                <button 
+                                    className="guardian-btn-search"
+                                    onClick={(e) => {
+                                        const input = e.target.parentElement.querySelector('input');
+                                        handleSearch(input.value);
+                                    }}
+                                >
+                                    Search Area
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Map */}
+                        <div className="guardian-map-container">
+                            <GuardianMap crimes={crimes} selectedLocation={selectedLocation} />
+                        </div>
+
+                        {/* Features */}
+                        <div className="guardian-features">
+                            <div className="guardian-feature-card">
+                                <h3>🤖 AI Safe Route</h3>
+                                <p>Get AI-powered route recommendations based on real-time crime data and safety analysis.</p>
+                                <button className="guardian-btn-search" onClick={handleFindSafeRoute}>
+                                    Find Safe Route
+                                </button>
+                            </div>
+                            
+                            <div className="guardian-feature-card">
+                                <h3>📢 Report Crime</h3>
+                                <p>Quickly report incidents to help keep your community safe and informed.</p>
+                                <button 
+                                    className="guardian-btn-search"
+                                    onClick={() => {
+                                        const crimeType = prompt('Enter crime type:');
+                                        const description = prompt('Enter description:');
+                                        if (crimeType && description) {
+                                            handleReportCrime({ type: crimeType, description });
+                                        }
+                                    }}
+                                >
+                                    Report Incident
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stats */}
+                        {stats && <GuardianStats stats={stats} />}
+                    </div>
+
+                    {/* Modals */}
+                    <CheckInModal 
+                        isOpen={isCheckInOpen} 
+                        onClose={() => setIsCheckInOpen(false)} 
+                    />
+                    
+                    <RouteModal 
+                        isOpen={isRouteModalOpen}
+                        onClose={() => setIsRouteModalOpen(false)}
+                        recommendations={routeRecommendations}
+                        crimeCount={crimes.length}
+                    />
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<Guardian />, document.getElementById('root'));
+    </script>
+</body>
+</html>
